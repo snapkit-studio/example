@@ -99,13 +99,28 @@ public struct SnapkitImageURLBuilder {
     /// Generate Snapkit image proxy URL
     ///
     /// - Parameters:
-    ///   - url: Original image URL
+    ///   - path: S3 path (e.g., "project/path/to/image.jpg") - for direct S3 access
+    ///   - url: Original image URL (CloudFront, etc.) - for external CDN proxy
     ///   - transform: Image transformation options
     /// - Returns: Complete image proxy URL
     ///
-    /// # Example
+    /// # Example - S3 Direct Access (Recommended)
     /// ```swift
     /// let builder = SnapkitImageURLBuilder(organizationName: "my-org")
+    /// let imageURL = builder.build(
+    ///     path: "project/images/hero.jpg",
+    ///     transform: TransformOptions(
+    ///         w: 300,
+    ///         h: 200,
+    ///         fit: .cover,
+    ///         format: .webp
+    ///     )
+    /// )
+    /// // → "https://my-org-cdn.snapkit.studio/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp"
+    /// ```
+    ///
+    /// # Example - External CDN Proxy (Optional)
+    /// ```swift
     /// let imageURL = builder.build(
     ///     url: "https://cdn.cloudfront.net/image.jpg",
     ///     transform: TransformOptions(
@@ -115,19 +130,37 @@ public struct SnapkitImageURLBuilder {
     ///         format: .webp
     ///     )
     /// )
+    /// // → "https://my-org.snapkit.dev/image?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp"
     /// ```
-    public func build(url: String, transform: TransformOptions? = nil) -> URL? {
-        var components = URLComponents(string: "https://\(organizationName).snapkit.dev/image")
+    public func build(path: String? = nil, url: String? = nil, transform: TransformOptions? = nil) -> URL? {
+        // Validate parameters
+        guard path != nil || url != nil else {
+            return nil
+        }
 
+        guard !(path != nil && url != nil) else {
+            return nil
+        }
+
+        let transformString = transform.map { buildTransformString($0) } ?? ""
+
+        // S3 direct access
+        if let path = path {
+            let baseUrl = "https://\(organizationName)-cdn.snapkit.studio/\(path)"
+            if !transformString.isEmpty {
+                return URL(string: "\(baseUrl)?transform=\(transformString)")
+            }
+            return URL(string: baseUrl)
+        }
+
+        // External CDN proxy
+        var components = URLComponents(string: "https://\(organizationName).snapkit.dev/image")
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "url", value: url)
         ]
 
-        if let transform = transform {
-            let transformString = buildTransformString(transform)
-            if !transformString.isEmpty {
-                queryItems.append(URLQueryItem(name: "transform", value: transformString))
-            }
+        if !transformString.isEmpty {
+            queryItems.append(URLQueryItem(name: "transform", value: transformString))
         }
 
         components?.queryItems = queryItems

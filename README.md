@@ -28,7 +28,20 @@ Copy the `buildSnapkitImageURL` function from [typescript/src/buildSnapkitImageU
 // Copy the function from typescript/src/buildSnapkitImageURL.ts
 // Then use it in your code:
 
+// S3 direct access (recommended)
 const imageUrl = buildSnapkitImageURL({
+  organizationName: "my-org",
+  path: "project/images/hero.jpg",
+  transform: {
+    w: 300,
+    h: 200,
+    fit: "cover",
+    format: "webp",
+  },
+});
+
+// External CDN proxy (optional)
+const externalUrl = buildSnapkitImageURL({
   organizationName: "my-org",
   url: "https://cdn.cloudfront.net/image.jpg",
   transform: {
@@ -48,9 +61,10 @@ Copy the `buildSnapkitImageURL` function from [javascript/src/buildSnapkitImageU
 // Copy the function from javascript/src/buildSnapkitImageURL.js
 // Then use it in your code:
 
+// S3 direct access (recommended)
 const imageUrl = buildSnapkitImageURL({
   organizationName: "my-org",
-  url: "https://cdn.cloudfront.net/image.jpg",
+  path: "project/images/hero.jpg",
   transform: {
     w: 300,
     h: 200,
@@ -65,27 +79,30 @@ const imageUrl = buildSnapkitImageURL({
 See the [Next.js documentation](nextjs/README.md) for complete implementation. Copy the helper functions and create a custom loader:
 
 ```typescript
-// 1. Copy buildSnapkitImageURL function to lib/snapkit-image-url.ts
-// 2. Create lib/snapkit-loader.ts with the loader implementation
-// 3. Configure next.config.js
+// 1. Copy functions to src/snapkit-loader.js
+// 2. Configure next.config.js
 
 // next.config.js
 module.exports = {
   images: {
     loader: "custom",
-    loaderFile: "./lib/snapkit-loader.ts",
+    loaderFile: "./src/snapkit-loader.js",
   },
 };
 
-// Component
-import Image from "next/image";
+// S3 Direct Access (Recommended)
+export default createSnapkitLoader({
+  organizationName: 'my-org',
+  basePath: 'project/images',
+});
 
+// Component
 <Image
-  src="https://cdn.cloudfront.net/image.jpg"
+  src="hero.jpg"  // Relative to basePath
   width={300}
   height={200}
   alt="Example"
-/>;
+/>
 ```
 
 ### Swift
@@ -97,8 +114,10 @@ Copy the Swift implementation from [swift/Sources/](swift/Sources/) and use it:
 // Then use it in your code:
 
 let builder = SnapkitImageURL(organizationName: "my-org")
+
+// S3 direct access (recommended)
 let imageURL = builder.build(
-    url: "https://cdn.cloudfront.net/image.jpg",
+    path: "project/images/hero.jpg",
     transform: TransformOptions(
         w: 300,
         h: 200,
@@ -117,8 +136,10 @@ Copy the Kotlin implementation from [kotlin/src/](kotlin/src/) and use it:
 // Then use it in your code:
 
 val builder = SnapkitImageURL("my-org")
+
+// S3 direct access (recommended)
 val imageUrl = builder.build(
-    url = "https://cdn.cloudfront.net/image.jpg",
+    path = "project/images/hero.jpg",
     transform = TransformOptions(
         w = 300,
         h = 200,
@@ -137,8 +158,10 @@ Copy the Dart implementation from [dart/lib/](dart/lib/) and use it:
 // Then use it in your code:
 
 final builder = SnapkitImageURL('my-org');
+
+// S3 direct access (recommended)
 final imageUrl = builder.build(
-  url: 'https://cdn.cloudfront.net/image.jpg',
+  path: 'project/images/hero.jpg',
   transform: TransformOptions(
     w: 300,
     h: 200,
@@ -158,9 +181,11 @@ Copy the PHP implementation from [php/src/](php/src/) and use it:
 // Then use it in your code:
 
 $builder = new SnapkitImageURL('my-org');
+
+// S3 direct access (recommended)
 $imageUrl = $builder->build(
-    'https://cdn.cloudfront.net/image.jpg',
-    new TransformOptions([
+    path: 'project/images/hero.jpg',
+    transform: new TransformOptions([
         'w' => 300,
         'h' => 200,
         'fit' => 'cover',
@@ -169,12 +194,17 @@ $imageUrl = $builder->build(
 );
 ```
 
-## ⚠️ URL Parameter Usage Notes
+## Usage Modes
 
-The `url` parameter is **optional** and should only be used when you need to continue using your existing CDN.
+### S3 Direct Access (Recommended)
+- **URL Format**: `https://{org}-cdn.snapkit.studio/{path}?transform=...`
+- **Use `path` parameter**: Provide S3 path like `"project/images/hero.jpg"`
+- **Benefits**: Faster response, lower costs, direct S3 integration
 
-- **Purpose**: Fetching images from external URLs (not S3)
-- **Cost**: May increase image response time and CDN costs
+### External CDN Proxy (Optional)
+- **URL Format**: `https://{org}.snapkit.dev/image?url=...&transform=...`
+- **Use `url` parameter**: Provide external URL like `"https://cdn.cloudfront.net/image.jpg"`
+- **Purpose**: For existing CDN integration
 - **Recommendation**: Use only when unavoidable
 
 ## Transform Options

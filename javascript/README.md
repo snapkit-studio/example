@@ -75,12 +75,28 @@ function buildTransformString(options) {
  *
  * @param {Object} params - URL generation parameters
  * @param {string} params.organizationName - Organization name (used as Snapkit subdomain)
- * @param {string} params.url - Original image URL (CloudFront, etc.)
+ * @param {string} [params.path] - S3 path (e.g., "project/path/to/image.jpg") - for direct S3 access
+ * @param {string} [params.url] - Original image URL (CloudFront, etc.) - for external CDN proxy
  * @param {Object} [params.transform] - Image transformation options
  * @returns {string} Complete image proxy URL
  *
  * @example
+ * // S3 direct access (recommended)
  * const imageUrl = buildSnapkitImageURL({
+ *   organizationName: 'my-org',
+ *   path: 'project/images/hero.jpg',
+ *   transform: {
+ *     w: 300,
+ *     h: 200,
+ *     fit: 'cover',
+ *     format: 'webp'
+ *   }
+ * });
+ * // → "https://my-org-cdn.snapkit.studio/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp"
+ *
+ * @example
+ * // External CDN proxy (optional)
+ * const externalUrl = buildSnapkitImageURL({
  *   organizationName: 'my-org',
  *   url: 'https://cdn.cloudfront.net/image.jpg',
  *   transform: {
@@ -93,21 +109,33 @@ function buildTransformString(options) {
  * // → "https://my-org.snapkit.dev/image?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp"
  */
 export function buildSnapkitImageURL(params) {
-  const { organizationName, url, transform } = params;
+  const { organizationName, path, url, transform } = params;
 
-  // Construct base URL
+  // Validate parameters
+  if (!path && !url) {
+    throw new Error("Either 'path' or 'url' parameter must be provided");
+  }
+
+  if (path && url) {
+    throw new Error("Cannot use both 'path' and 'url' parameters simultaneously");
+  }
+
+  // Build transform query string
+  const transformString = transform ? buildTransformString(transform) : "";
+
+  // S3 direct access
+  if (path) {
+    const baseUrl = `https://${organizationName}-cdn.snapkit.studio/${path}`;
+    return transformString ? `${baseUrl}?transform=${transformString}` : baseUrl;
+  }
+
+  // External CDN proxy
   const baseUrl = `https://${organizationName}.snapkit.dev/image`;
-
-  // Build query parameters using URLSearchParams
   const searchParams = new URLSearchParams();
   searchParams.set("url", url);
 
-  // Add transform options if present
-  if (transform) {
-    const transformString = buildTransformString(transform);
-    if (transformString) {
-      searchParams.set("transform", transformString);
-    }
+  if (transformString) {
+    searchParams.set("transform", transformString);
   }
 
   return `${baseUrl}?${searchParams.toString()}`;
@@ -122,7 +150,7 @@ Save the copied code as `buildSnapkitImageURL.js` file in your project.
 
 ## Usage
 
-### Basic Usage
+### Basic Usage (S3 Direct Access - Recommended)
 
 First, copy the code from [src/buildSnapkitImageURL.js](src/buildSnapkitImageURL.js) into your project:
 
@@ -131,9 +159,9 @@ First, copy the code from [src/buildSnapkitImageURL.js](src/buildSnapkitImageURL
 
 const imageUrl = buildSnapkitImageURL({
   organizationName: "my-org",
-  url: "https://cdn.cloudfront.net/image.jpg",
+  path: "project/images/hero.jpg",
 });
-// → https://my-org.snapkit.dev/image?url=https%3A%2F%2Fcdn.cloudfront.net%2Fimage.jpg
+// → https://my-org-cdn.snapkit.studio/project/images/hero.jpg
 ```
 
 ### Image Transform Options
@@ -141,7 +169,7 @@ const imageUrl = buildSnapkitImageURL({
 ```javascript
 const imageUrl = buildSnapkitImageURL({
   organizationName: "my-org",
-  url: "https://cdn.cloudfront.net/image.jpg",
+  path: "project/images/hero.jpg",
   transform: {
     w: 300,
     h: 200,
@@ -149,7 +177,7 @@ const imageUrl = buildSnapkitImageURL({
     format: "webp",
   },
 });
-// → https://my-org.snapkit.dev/image?url=...&transform=w:300,h:200,fit:cover,format:webp
+// → https://my-org-cdn.snapkit.studio/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp
 ```
 
 ### Advanced Transforms
@@ -157,7 +185,7 @@ const imageUrl = buildSnapkitImageURL({
 ```javascript
 const imageUrl = buildSnapkitImageURL({
   organizationName: "my-org",
-  url: "https://cdn.cloudfront.net/image.jpg",
+  path: "project/images/hero.jpg",
   transform: {
     w: 400,
     h: 300,
@@ -175,6 +203,24 @@ const imageUrl = buildSnapkitImageURL({
     },
   },
 });
+```
+
+### External CDN Proxy (Optional)
+
+If you need to continue using your existing CDN:
+
+```javascript
+const imageUrl = buildSnapkitImageURL({
+  organizationName: "my-org",
+  url: "https://cdn.cloudfront.net/image.jpg",
+  transform: {
+    w: 300,
+    h: 200,
+    fit: "cover",
+    format: "webp",
+  },
+});
+// → https://my-org.snapkit.dev/image?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp
 ```
 
 ## ⚠️ URL Parameter Usage Notes

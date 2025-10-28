@@ -75,18 +75,33 @@ class Extract
 /**
  * Snapkit image URL builder
  *
- * @example
+ * @example S3 Direct Access (Recommended)
  * ```php
  * $builder = new SnapkitImageURL('my-org');
  * $imageUrl = $builder->build(
- *     'https://cdn.cloudfront.net/image.jpg',
- *     new TransformOptions([
+ *     path: 'project/images/hero.jpg',
+ *     transform: new TransformOptions([
  *         'w' => 300,
  *         'h' => 200,
  *         'fit' => 'cover',
  *         'format' => 'webp'
  *     ])
  * );
+ * // → "https://my-org-cdn.snapkit.studio/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp"
+ * ```
+ *
+ * @example External CDN Proxy (Optional)
+ * ```php
+ * $imageUrl = $builder->build(
+ *     url: 'https://cdn.cloudfront.net/image.jpg',
+ *     transform: new TransformOptions([
+ *         'w' => 300,
+ *         'h' => 200,
+ *         'fit' => 'cover',
+ *         'format' => 'webp'
+ *     ])
+ * );
+ * // → "https://my-org.snapkit.dev/image?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp"
  * ```
  */
 class SnapkitImageURL
@@ -101,23 +116,36 @@ class SnapkitImageURL
     /**
      * Generate Snapkit image proxy URL
      *
-     * @param string $url Original image URL
+     * @param string|null $path S3 path (e.g., "project/path/to/image.jpg") - for direct S3 access
+     * @param string|null $url Original image URL - for external CDN proxy
      * @param TransformOptions|null $transform Image transformation options
      * @return string Complete image proxy URL
      */
-    public function build(string $url, ?TransformOptions $transform = null): string
+    public function build(?string $path = null, ?string $url = null, ?TransformOptions $transform = null): string
     {
+        // Validate parameters
+        if ($path === null && $url === null) {
+            throw new \InvalidArgumentException("Either 'path' or 'url' parameter must be provided");
+        }
+
+        if ($path !== null && $url !== null) {
+            throw new \InvalidArgumentException("Cannot use both 'path' and 'url' parameters simultaneously");
+        }
+
+        $transformString = $transform !== null ? $this->buildTransformString($transform) : '';
+
+        // S3 direct access
+        if ($path !== null) {
+            $baseUrl = "https://{$this->organizationName}-cdn.snapkit.studio/{$path}";
+            return !empty($transformString) ? "{$baseUrl}?transform={$transformString}" : $baseUrl;
+        }
+
+        // External CDN proxy
         $baseUrl = "https://{$this->organizationName}.snapkit.dev/image";
+        $queryParams = ['url' => $url];
 
-        $queryParams = [
-            'url' => $url,
-        ];
-
-        if ($transform !== null) {
-            $transformString = $this->buildTransformString($transform);
-            if (!empty($transformString)) {
-                $queryParams['transform'] = $transformString;
-            }
+        if (!empty($transformString)) {
+            $queryParams['transform'] = $transformString;
         }
 
         return $baseUrl . '?' . http_build_query($queryParams);

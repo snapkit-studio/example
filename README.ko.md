@@ -28,7 +28,20 @@
 // typescript/src/buildSnapkitImageURL.ts에서 함수를 복사
 // 그 후 코드에서 사용:
 
+// S3 직접 접근 (권장)
 const imageUrl = buildSnapkitImageURL({
+  organizationName: "my-org",
+  path: "project/images/hero.jpg",
+  transform: {
+    w: 300,
+    h: 200,
+    fit: "cover",
+    format: "webp",
+  },
+});
+
+// 외부 CDN 프록시 (선택사항)
+const externalUrl = buildSnapkitImageURL({
   organizationName: "my-org",
   url: "https://cdn.cloudfront.net/image.jpg",
   transform: {
@@ -48,9 +61,10 @@ const imageUrl = buildSnapkitImageURL({
 // javascript/src/buildSnapkitImageURL.js에서 함수를 복사
 // 그 후 코드에서 사용:
 
+// S3 직접 접근 (권장)
 const imageUrl = buildSnapkitImageURL({
   organizationName: "my-org",
-  url: "https://cdn.cloudfront.net/image.jpg",
+  path: "project/images/hero.jpg",
   transform: {
     w: 300,
     h: 200,
@@ -65,27 +79,30 @@ const imageUrl = buildSnapkitImageURL({
 전체 구현은 [Next.js 문서](nextjs/README.ko.md)를 참고하세요. Helper 함수를 복사하고 커스텀 loader를 생성하세요:
 
 ```typescript
-// 1. buildSnapkitImageURL 함수를 lib/snapkit-image-url.ts로 복사
-// 2. loader 구현으로 lib/snapkit-loader.ts 생성
-// 3. next.config.js 설정
+// 1. 함수를 src/snapkit-loader.js로 복사
+// 2. next.config.js 설정
 
 // next.config.js
 module.exports = {
   images: {
     loader: "custom",
-    loaderFile: "./lib/snapkit-loader.ts",
+    loaderFile: "./src/snapkit-loader.js",
   },
 };
 
-// Component
-import Image from "next/image";
+// S3 직접 접근 (권장)
+export default createSnapkitLoader({
+  organizationName: 'my-org',
+  basePath: 'project/images',
+});
 
+// Component
 <Image
-  src="https://cdn.cloudfront.net/image.jpg"
+  src="hero.jpg"  // basePath 기준 상대 경로
   width={300}
   height={200}
   alt="Example"
-/>;
+/>
 ```
 
 ### Swift
@@ -97,8 +114,10 @@ import Image from "next/image";
 // 그 후 코드에서 사용:
 
 let builder = SnapkitImageURL(organizationName: "my-org")
+
+// S3 직접 접근 (권장)
 let imageURL = builder.build(
-    url: "https://cdn.cloudfront.net/image.jpg",
+    path: "project/images/hero.jpg",
     transform: TransformOptions(
         w: 300,
         h: 200,
@@ -117,8 +136,10 @@ let imageURL = builder.build(
 // 그 후 코드에서 사용:
 
 val builder = SnapkitImageURL("my-org")
+
+// S3 직접 접근 (권장)
 val imageUrl = builder.build(
-    url = "https://cdn.cloudfront.net/image.jpg",
+    path = "project/images/hero.jpg",
     transform = TransformOptions(
         w = 300,
         h = 200,
@@ -137,8 +158,10 @@ val imageUrl = builder.build(
 // 그 후 코드에서 사용:
 
 final builder = SnapkitImageURL('my-org');
+
+// S3 직접 접근 (권장)
 final imageUrl = builder.build(
-  url: 'https://cdn.cloudfront.net/image.jpg',
+  path: 'project/images/hero.jpg',
   transform: TransformOptions(
     w: 300,
     h: 200,
@@ -158,9 +181,11 @@ final imageUrl = builder.build(
 // 그 후 코드에서 사용:
 
 $builder = new SnapkitImageURL('my-org');
+
+// S3 직접 접근 (권장)
 $imageUrl = $builder->build(
-    'https://cdn.cloudfront.net/image.jpg',
-    new TransformOptions([
+    path: 'project/images/hero.jpg',
+    transform: new TransformOptions([
         'w' => 300,
         'h' => 200,
         'fit' => 'cover',
@@ -169,13 +194,18 @@ $imageUrl = $builder->build(
 );
 ```
 
-## ⚠️ URL 파라미터 사용 시 주의사항
+## 사용 모드
 
-`url` 파라미터는 **선택 사항**이며, 기존 CDN을 계속 사용하고자 할 때만 사용하세요.
+### S3 직접 접근 (권장)
+- **URL 형식**: `https://{org}-cdn.snapkit.studio/{path}?transform=...`
+- **`path` 파라미터 사용**: `"project/images/hero.jpg"`와 같은 S3 경로 제공
+- **장점**: 빠른 응답 속도, 낮은 비용, S3 직접 통합
 
-- **목적**: S3가 아닌 외부 URL로부터 이미지를 fetching
-- **비용**: 이미지 응답 속도 저하 및 CDN 비용 증가 가능
-- **권장**: 불가피한 경우에만 사용
+### 외부 CDN 프록시 (선택사항)
+- **URL 형식**: `https://{org}.snapkit.dev/image?url=...&transform=...`
+- **`url` 파라미터 사용**: `"https://cdn.cloudfront.net/image.jpg"`와 같은 외부 URL 제공
+- **목적**: 기존 CDN 통합용
+- **권장사항**: 불가피한 경우에만 사용
 
 ## Transform 옵션
 

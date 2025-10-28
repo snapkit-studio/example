@@ -89,9 +89,23 @@ class TransformOptions {
 
 /// Snapkit image URL builder
 ///
-/// Example:
+/// Example - S3 Direct Access (Recommended):
 /// ```dart
 /// final builder = SnapkitImageURL('my-org');
+/// final imageUrl = builder.build(
+///   path: 'project/images/hero.jpg',
+///   transform: TransformOptions(
+///     w: 300,
+///     h: 200,
+///     fit: Fit.cover,
+///     format: Format.webp,
+///   ),
+/// );
+/// // → "https://my-org-cdn.snapkit.studio/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp"
+/// ```
+///
+/// Example - External CDN Proxy (Optional):
+/// ```dart
 /// final imageUrl = builder.build(
 ///   url: 'https://cdn.cloudfront.net/image.jpg',
 ///   transform: TransformOptions(
@@ -101,6 +115,7 @@ class TransformOptions {
 ///     format: Format.webp,
 ///   ),
 /// );
+/// // → "https://my-org.snapkit.dev/image?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp"
 /// ```
 class SnapkitImageURL {
   final String organizationName;
@@ -109,23 +124,39 @@ class SnapkitImageURL {
 
   /// Generate Snapkit image proxy URL
   ///
-  /// [url] Original image URL
+  /// [path] S3 path (e.g., "project/path/to/image.jpg") - for direct S3 access
+  /// [url] Original image URL - for external CDN proxy
   /// [transform] Image transformation options
   String build({
-    required String url,
+    String? path,
+    String? url,
     TransformOptions? transform,
   }) {
-    final uri = Uri.parse('https://$organizationName.snapkit.dev/image');
+    // Validate parameters
+    if (path == null && url == null) {
+      throw ArgumentError("Either 'path' or 'url' parameter must be provided");
+    }
 
+    if (path != null && url != null) {
+      throw ArgumentError("Cannot use both 'path' and 'url' parameters simultaneously");
+    }
+
+    final transformString = transform != null ? _buildTransformString(transform) : '';
+
+    // S3 direct access
+    if (path != null) {
+      final baseUrl = 'https://$organizationName-cdn.snapkit.studio/$path';
+      return transformString.isNotEmpty ? '$baseUrl?transform=$transformString' : baseUrl;
+    }
+
+    // External CDN proxy
+    final uri = Uri.parse('https://$organizationName.snapkit.dev/image');
     final queryParameters = <String, String>{
-      'url': url,
+      'url': url!,
     };
 
-    if (transform != null) {
-      final transformString = _buildTransformString(transform);
-      if (transformString.isNotEmpty) {
-        queryParameters['transform'] = transformString;
-      }
+    if (transformString.isNotEmpty) {
+      queryParameters['transform'] = transformString;
     }
 
     return uri.replace(queryParameters: queryParameters).toString();

@@ -61,7 +61,23 @@ data class TransformOptions(
  *
  * @example
  * ```kotlin
+ * // S3 Direct Access (Recommended)
  * val builder = SnapkitImageURL("my-org")
+ * val imageUrl = builder.build(
+ *     path = "project/images/hero.jpg",
+ *     transform = TransformOptions(
+ *         w = 300,
+ *         h = 200,
+ *         fit = TransformOptions.Fit.COVER,
+ *         format = TransformOptions.Format.WEBP
+ *     )
+ * )
+ * // → "https://my-org-cdn.snapkit.studio/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp"
+ * ```
+ *
+ * @example
+ * ```kotlin
+ * // External CDN Proxy (Optional)
  * val imageUrl = builder.build(
  *     url = "https://cdn.cloudfront.net/image.jpg",
  *     transform = TransformOptions(
@@ -71,6 +87,7 @@ data class TransformOptions(
  *         format = TransformOptions.Format.WEBP
  *     )
  * )
+ * // → "https://my-org.snapkit.dev/image?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp"
  * ```
  */
 class SnapkitImageURL(private val organizationName: String) {
@@ -78,21 +95,40 @@ class SnapkitImageURL(private val organizationName: String) {
     /**
      * Generate Snapkit image proxy URL
      *
-     * @param url Original image URL
+     * @param path S3 path (e.g., "project/path/to/image.jpg") - for direct S3 access
+     * @param url Original image URL - for external CDN proxy
      * @param transform Image transformation options
      * @return Complete image proxy URL
      */
-    fun build(url: String, transform: TransformOptions? = null): String {
-        val baseUrl = "https://$organizationName.snapkit.dev/image"
+    fun build(path: String? = null, url: String? = null, transform: TransformOptions? = null): String {
+        // Validate parameters
+        require(path != null || url != null) {
+            "Either 'path' or 'url' parameter must be provided"
+        }
 
+        require(!(path != null && url != null)) {
+            "Cannot use both 'path' and 'url' parameters simultaneously"
+        }
+
+        val transformString = transform?.let { buildTransformString(it) } ?: ""
+
+        // S3 direct access
+        if (path != null) {
+            val baseUrl = "https://$organizationName-cdn.snapkit.studio/$path"
+            return if (transformString.isNotEmpty()) {
+                "$baseUrl?transform=$transformString"
+            } else {
+                baseUrl
+            }
+        }
+
+        // External CDN proxy
+        val baseUrl = "https://$organizationName.snapkit.dev/image"
         val uriBuilder = Uri.parse(baseUrl).buildUpon()
         uriBuilder.appendQueryParameter("url", url)
 
-        transform?.let {
-            val transformString = buildTransformString(it)
-            if (transformString.isNotEmpty()) {
-                uriBuilder.appendQueryParameter("transform", transformString)
-            }
+        if (transformString.isNotEmpty()) {
+            uriBuilder.appendQueryParameter("transform", transformString)
         }
 
         return uriBuilder.build().toString()

@@ -3,15 +3,41 @@ import { createSnapkitLoader } from "../snapkit-loader.js";
 import snapkitLoader from "../snapkit-loader.js";
 
 describe("createSnapkitLoader", () => {
-  const baseParams = {
-    src: "https://cdn.cloudfront.net/image.jpg",
-    width: 300,
-  };
-
-  describe("Basic behavior", () => {
-    it("should create a basic loader", () => {
+  describe("S3 Direct Access (default)", () => {
+    it("should create URL with S3 direct access", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+      });
+
+      const result = loader({ src: "image.jpg", width: 300 });
+
+      expect(result).toContain("https://test-org-cdn.snapkit.studio/image.jpg");
+      expect(result).toContain("transform=w:300");
+      expect(result).toContain("format:webp");
+    });
+
+    it("should combine basePath with src", () => {
+      const loader = createSnapkitLoader({
+        organizationName: "test-org",
+        basePath: "project/images",
+      });
+
+      const result = loader({ src: "hero.jpg", width: 300 });
+
+      expect(result).toContain("https://test-org-cdn.snapkit.studio/project/images/hero.jpg");
+    });
+  });
+
+  describe("External CDN Proxy mode", () => {
+    const baseParams = {
+      src: "https://cdn.cloudfront.net/image.jpg",
+      width: 300,
+    };
+
+    it("should create a basic loader with external proxy", () => {
+      const loader = createSnapkitLoader({
+        organizationName: "test-org",
+        useExternalProxy: true,
       });
 
       const result = loader(baseParams);
@@ -27,6 +53,7 @@ describe("createSnapkitLoader", () => {
     it("should include width parameter in transform", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
       });
 
       const result = loader({ ...baseParams, width: 500 });
@@ -36,9 +63,15 @@ describe("createSnapkitLoader", () => {
   });
 
   describe("Transform options", () => {
+    const baseParams = {
+      src: "https://cdn.cloudfront.net/image.jpg",
+      width: 300,
+    };
+
     it("should apply format option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           format: "avif",
         },
@@ -52,6 +85,7 @@ describe("createSnapkitLoader", () => {
     it("should apply fit option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           fit: "cover",
         },
@@ -65,6 +99,7 @@ describe("createSnapkitLoader", () => {
     it("should apply height (h) option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           h: 200,
         },
@@ -78,6 +113,7 @@ describe("createSnapkitLoader", () => {
     it("should apply rotation option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           rotation: 90,
         },
@@ -91,6 +127,7 @@ describe("createSnapkitLoader", () => {
     it("should apply blur option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           blur: 5,
         },
@@ -104,6 +141,7 @@ describe("createSnapkitLoader", () => {
     it("should apply dpr option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           dpr: 2,
         },
@@ -117,6 +155,7 @@ describe("createSnapkitLoader", () => {
     it("should apply quality option from transform", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           quality: 90,
         },
@@ -130,6 +169,7 @@ describe("createSnapkitLoader", () => {
     it("should apply quality option from Next.js parameter", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
       });
 
       const result = loader({ ...baseParams, quality: 75 });
@@ -140,6 +180,7 @@ describe("createSnapkitLoader", () => {
     it("should prioritize transform quality over Next.js quality", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           quality: 90,
         },
@@ -153,9 +194,15 @@ describe("createSnapkitLoader", () => {
   });
 
   describe("Boolean Transform options", () => {
+    const baseParams = {
+      src: "https://cdn.cloudfront.net/image.jpg",
+      width: 300,
+    };
+
     it("should apply grayscale option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           grayscale: true,
         },
@@ -169,6 +216,7 @@ describe("createSnapkitLoader", () => {
     it("should apply flip option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           flip: true,
         },
@@ -182,6 +230,7 @@ describe("createSnapkitLoader", () => {
     it("should apply flop option", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           flop: true,
         },
@@ -194,9 +243,15 @@ describe("createSnapkitLoader", () => {
   });
 
   describe("extract option", () => {
+    const baseParams = {
+      src: "https://cdn.cloudfront.net/image.jpg",
+      width: 300,
+    };
+
     it("should apply extract option in correct format", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           extract: { x: 10, y: 20, width: 100, height: 200 },
         },
@@ -209,9 +264,15 @@ describe("createSnapkitLoader", () => {
   });
 
   describe("Combined options", () => {
+    const baseParams = {
+      src: "https://cdn.cloudfront.net/image.jpg",
+      width: 300,
+    };
+
     it("should combine multiple options", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
         transform: {
           h: 200,
           fit: "cover",
@@ -239,9 +300,15 @@ describe("createSnapkitLoader", () => {
   });
 
   describe("URL encoding", () => {
+    const baseParams = {
+      src: "https://cdn.cloudfront.net/image.jpg",
+      width: 300,
+    };
+
     it("should encode src URL correctly", () => {
       const loader = createSnapkitLoader({
         organizationName: "test-org",
+        useExternalProxy: true,
       });
 
       const result = loader({
@@ -269,11 +336,12 @@ describe("snapkitLoader (default export)", () => {
 
   it("should read organizationName from environment variable", () => {
     const result = snapkitLoader({
-      src: "https://cdn.cloudfront.net/image.jpg",
+      src: "image.jpg",
       width: 300,
+      useExternalProxy: true,
     });
 
-    expect(result).toContain("https://env-org.snapkit.dev/image");
+    expect(result).toContain("https://env-org-cdn.snapkit.studio");
   });
 
   it("should throw error when environment variable is not set", () => {

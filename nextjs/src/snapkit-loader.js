@@ -46,11 +46,14 @@ function buildTransformString(options, width) {
  *
  * @param {Object} config - Snapkit loader configuration
  * @param {string} config.organizationName - Organization name
+ * @param {string} [config.basePath] - Base S3 path (e.g., "project/images") - for direct S3 access
+ * @param {boolean} [config.useExternalProxy] - Use external CDN proxy mode
  * @param {Object} [config.transform] - Default transform options
  * @returns {Function} Next.js Image Loader function
  *
  * @example
  * ```js
+ * // S3 Direct Access (Recommended)
  * // next.config.js
  * module.exports = {
  *   images: {
@@ -64,6 +67,7 @@ function buildTransformString(options, width) {
  *
  * export default createSnapkitLoader({
  *   organizationName: 'my-org',
+ *   basePath: 'project/images',
  *   transform: {
  *     format: 'webp',
  *     fit: 'cover',
@@ -73,13 +77,13 @@ function buildTransformString(options, width) {
  *
  * @example
  * ```jsx
- * // Usage in Component
+ * // Usage in Component (S3 Direct Access)
  * import Image from 'next/image';
  *
  * export function MyComponent() {
  *   return (
  *     <Image
- *       src="https://cdn.cloudfront.net/image.jpg"
+ *       src="hero.jpg"  // Relative path from basePath
  *       width={300}
  *       height={200}
  *       alt="Example"
@@ -87,17 +91,31 @@ function buildTransformString(options, width) {
  *   );
  * }
  * ```
+ *
+ * @example
+ * ```jsx
+ * // Usage with External CDN Proxy (Optional)
+ * export default createSnapkitLoader({
+ *   organizationName: 'my-org',
+ *   useExternalProxy: true,
+ *   transform: {
+ *     format: 'webp',
+ *     fit: 'cover',
+ *   },
+ * });
+ *
+ * // Component
+ * <Image
+ *   src="https://cdn.cloudfront.net/image.jpg"
+ *   width={300}
+ *   height={200}
+ *   alt="Example"
+ * />
+ * ```
  */
 export function createSnapkitLoader(config) {
   return function snapkitLoader({ src, width, quality }) {
-    const { organizationName, transform = {} } = config;
-
-    // Construct base URL
-    const baseUrl = `https://${organizationName}.snapkit.dev/image`;
-
-    // Build query parameters using URLSearchParams
-    const searchParams = new URLSearchParams();
-    searchParams.set("url", src);
+    const { organizationName, basePath, useExternalProxy, transform = {} } = config;
 
     // Generate transform string
     const transformOptions = {
@@ -109,11 +127,24 @@ export function createSnapkitLoader(config) {
     };
 
     const transformString = buildTransformString(transformOptions, width);
-    if (transformString) {
-      searchParams.set("transform", transformString);
+
+    // External CDN proxy mode
+    if (useExternalProxy) {
+      const baseUrl = `https://${organizationName}.snapkit.dev/image`;
+      const searchParams = new URLSearchParams();
+      searchParams.set("url", src);
+
+      if (transformString) {
+        searchParams.set("transform", transformString);
+      }
+
+      return `${baseUrl}?${searchParams.toString()}`;
     }
 
-    return `${baseUrl}?${searchParams.toString()}`;
+    // S3 direct access mode (default)
+    const path = basePath ? `${basePath}/${src}` : src;
+    const baseUrl = `https://${organizationName}-cdn.snapkit.studio/${path}`;
+    return transformString ? `${baseUrl}?transform=${transformString}` : baseUrl;
   };
 }
 
