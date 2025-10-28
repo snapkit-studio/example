@@ -35,6 +35,26 @@ Config:   viewport=1920, dpr=2, quality=auto, format=auto, limitMaxWidth=true
 Request:  https://demo.snapkit.dev/image?url=https://example.com/photo.jpg&transform=w:1920,dpr:2,format:webp,quality:85
 ```
 
+## When to Use This
+
+⚠️ **Important**: This Service Worker intercepts image requests at the browser level to apply transformations. While powerful, this approach is needed only in **specific scenarios**:
+
+**Consider using Service Worker when:**
+- You have an existing site with many hardcoded image URLs
+- You cannot modify the HTML/component code
+- You need to optimize third-party images you don't control
+- You want zero-code-change image optimization
+
+**For most cases, direct integration is more straightforward:**
+- Use Snapkit URL builder directly in your components
+- Better control over image optimization per use case
+- Simpler debugging and maintenance
+- No Service Worker complexity
+
+If you're starting a new project or can modify your code, consider using the [main Snapkit integration](../README.md) instead.
+
+---
+
 ## Quick Start
 
 ### 1. Copy Files

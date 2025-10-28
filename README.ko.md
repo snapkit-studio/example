@@ -17,6 +17,7 @@
 | [Kotlin](#kotlin)         | Android                   | Gradle                | [문서](kotlin/README.ko.md)     |
 | [Dart](#dart)             | Flutter                   | pub                   | [문서](dart/README.ko.md)       |
 | [PHP](#php)               | 웹                        | Composer              | [문서](php/README.ko.md)        |
+| [Service Worker](#service-worker) 🧪 | 브라우저 | - | [문서](service-worker/README.ko.md) |
 
 ## 빠른 시작 예제
 
@@ -193,6 +194,41 @@ $imageUrl = $builder->build(
     ])
 );
 ```
+
+### Service Worker 🧪
+
+**실험적 기능**: 코드 변경 없이 브라우저 수준의 이미지 최적화. [service-worker/](service-worker/)에서 파일을 복사하고 등록하세요:
+
+```html
+<script src="./register-sw.js"></script>
+<script>
+  const config = {
+    clientMetrics: {
+      viewportWidth: window.innerWidth,
+      dpr: window.devicePixelRatio || 1,
+      enabled: true,
+    },
+    delivery: { organizationName: 'my-org' },
+    optimization: {
+      quality: 'auto',
+      format: 'auto',
+      limitMaxWidth: true,
+    },
+  };
+
+  registerSnapkitServiceWorker(config, 'url');
+</script>
+
+<!-- 기존 img 태그가 자동으로 작동 -->
+<img src="https://example.com/photo.jpg">
+```
+
+**Service Worker 사용을 고려해야 할 때:**
+- 하드코딩된 이미지 URL이 많은 기존 사이트가 있을 때
+- HTML/컴포넌트 코드를 수정할 수 없을 때
+- 서드파티 이미지를 최적화해야 할 때
+
+**새 프로젝트의 경우 위의 직접 통합 방식을 권장합니다.**
 
 ## 사용 모드
 

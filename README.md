@@ -17,6 +17,7 @@ Build Snapkit image proxy URLs for multiple languages and frameworks.
 | [Kotlin](#kotlin)         | Android                   | Gradle                | [Docs](kotlin/README.md)     |
 | [Dart](#dart)             | Flutter                   | pub                   | [Docs](dart/README.md)       |
 | [PHP](#php)               | Web                       | Composer              | [Docs](php/README.md)        |
+| [Service Worker](#service-worker) 🧪 | Browser | - | [Docs](service-worker/README.md) |
 
 ## Quick Start Examples
 
@@ -193,6 +194,41 @@ $imageUrl = $builder->build(
     ])
 );
 ```
+
+### Service Worker 🧪
+
+**Experimental**: Browser-level image optimization without code changes. Copy files from [service-worker/](service-worker/) and register:
+
+```html
+<script src="./register-sw.js"></script>
+<script>
+  const config = {
+    clientMetrics: {
+      viewportWidth: window.innerWidth,
+      dpr: window.devicePixelRatio || 1,
+      enabled: true,
+    },
+    delivery: { organizationName: 'my-org' },
+    optimization: {
+      quality: 'auto',
+      format: 'auto',
+      limitMaxWidth: true,
+    },
+  };
+
+  registerSnapkitServiceWorker(config, 'url');
+</script>
+
+<!-- Existing img tags work automatically -->
+<img src="https://example.com/photo.jpg">
+```
+
+**Use Service Worker when:**
+- You have an existing site with hardcoded image URLs
+- You cannot modify HTML/component code
+- You need to optimize third-party images
+
+**For new projects, direct integration (above) is recommended.**
 
 ## Usage Modes
 
