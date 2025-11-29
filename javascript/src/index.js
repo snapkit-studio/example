@@ -1,1 +1,1 @@
-export { buildSnapkitImageURL } from "./buildSnapkitImageURL.js";
+export { buildSnapkitImageURL } from "./build-snapkit-image-url.js";
