@@ -1,5 +1,5 @@
-export { buildSnapkitImageURL } from "./buildSnapkitImageURL";
+export { buildSnapkitImageURL } from "./build-snapkit-image-url";
 export type {
-  TransformOptions,
   BuildSnapkitImageURLParams,
-} from "./buildSnapkitImageURL";
+  TransformOptions,
+} from "./build-snapkit-image-url";

@@ -12,7 +12,7 @@ describe("buildSnapkitImageURL", () => {
       const result = buildSnapkitImageURL(baseParams);
 
       expect(result).toBe(
-        "https://test-org.snapkit.dev/image?url=https%3A%2F%2Fcdn.cloudfront.net%2Fimage.jpg",
+        "https://cdn.snapkit.studio/test-org/external?url=https%3A%2F%2Fcdn.cloudfront.net%2Fimage.jpg",
       );
     });
 
@@ -229,7 +229,7 @@ describe("buildSnapkitImageURL", () => {
         url: "https://cdn.example.com/image.jpg",
       });
 
-      expect(result).toContain("https://my-org-123.snapkit.dev/image");
+      expect(result).toContain("https://cdn.snapkit.studio/my-org-123/external");
     });
   });
 });

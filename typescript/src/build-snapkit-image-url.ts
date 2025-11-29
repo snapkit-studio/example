@@ -9,8 +9,12 @@
 export interface TransformOptions {
   /** Image width (pixels) */
   w?: number;
+  /** alias of w */
+  width?: number;
   /** Image height (pixels) */
   h?: number;
+  /** alias of h */
+  height?: number;
   /** Resize mode */
   fit?: "contain" | "cover" | "fill" | "inside" | "outside";
   /** Output format */
@@ -43,11 +47,11 @@ export interface TransformOptions {
  */
 export interface BuildSnapkitImageURLParams {
   /** Organization name (used as Snapkit subdomain) */
-  organizationName: string;
-  /** S3 path (e.g., "project/path/to/image.jpg") - for direct S3 access */
-  path?: string;
-  /** Original image URL (CloudFront, etc.) - for external CDN proxy */
-  url?: string;
+  organizationId: string;
+  /** Original image URL (S3, CloudFront, etc.) */
+  src?: string;
+  /** External image URL (CloudFront, etc.) - for external CDN proxy */
+  externalURL?: string;
   /** Image transformation options */
   transform?: TransformOptions;
 }
@@ -61,6 +65,8 @@ function buildTransformString(options: TransformOptions): string {
   const parts: string[] = [];
 
   // Numeric/string value parameters
+  if (options.width !== undefined) parts.push(`w:${options.width}`);
+  if (options.height !== undefined) parts.push(`h:${options.height}`);
   if (options.w !== undefined) parts.push(`w:${options.w}`);
   if (options.h !== undefined) parts.push(`h:${options.h}`);
   if (options.fit) parts.push(`fit:${options.fit}`);
@@ -95,8 +101,8 @@ function buildTransformString(options: TransformOptions): string {
  * ```typescript
  * // S3 direct access (recommended)
  * const imageUrl = buildSnapkitImageURL({
- *   organizationName: 'my-org',
- *   path: 'project/images/hero.jpg',
+ *   organizationId: 'my-org',
+ *   src: 'https://cdn.snapkit.studio/my-org-id/project/images/hero.jpg',
  *   transform: {
  *     w: 300,
  *     h: 200,
@@ -104,12 +110,12 @@ function buildTransformString(options: TransformOptions): string {
  *     format: 'webp'
  *   }
  * });
- * // → "https://my-org-cdn.snapkit.studio/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp"
+ * // → "https://cdn.snapkit.studio/my-org-id/project/images/hero.jpg?transform=w:300,h:200,fit:cover,format:webp"
  *
  * // External CDN proxy (optional)
  * const externalUrl = buildSnapkitImageURL({
- *   organizationName: 'my-org',
- *   url: 'https://cdn.cloudfront.net/image.jpg',
+ *   organizationId: 'my-org',
+ *   externalURL: 'https://cdn.cloudfront.net/image.jpg',
  *   transform: {
  *     w: 300,
  *     h: 200,
@@ -117,36 +123,49 @@ function buildTransformString(options: TransformOptions): string {
  *     format: 'webp'
  *   }
  * });
- * // → "https://my-org.snapkit.dev/image?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp"
+ * // → "https://cdn.snapkit.studio/my-org-id/external?url=https%3A%2F%2F...&transform=w:300,h:200,fit:cover,format:webp"
  * ```
  */
 export function buildSnapkitImageURL(
-  params: BuildSnapkitImageURLParams,
+  params: BuildSnapkitImageURLParams & {
+    defaultTransformOptions?: TransformOptions;
+  }
 ): string {
-  const { organizationName, path, url, transform } = params;
+  const {
+    organizationId,
+    externalURL,
+    src,
+    transform,
+    defaultTransformOptions = {
+      dpr: 2,
+    },
+  } = params;
 
   // Validate parameters
-  if (!path && !url) {
-    throw new Error("Either 'path' or 'url' parameter must be provided");
+  if (!externalURL && !src) {
+    throw new Error("Either 'src' or 'url' parameter must be provided");
   }
 
-  if (path && url) {
-    throw new Error("Cannot use both 'path' and 'url' parameters simultaneously");
+  if (src && externalURL) {
+    throw new Error(
+      "Cannot use both 'src' and 'url' parameters simultaneously"
+    );
   }
 
   // Build transform query string
-  const transformString = transform ? buildTransformString(transform) : "";
+  const transformString = transform
+    ? buildTransformString({ ...defaultTransformOptions, ...transform })
+    : "";
 
   // S3 direct access
-  if (path) {
-    const baseUrl = `https://${organizationName}-cdn.snapkit.studio/${path}`;
-    return transformString ? `${baseUrl}?transform=${transformString}` : baseUrl;
+  if (src) {
+    return transformString ? `${src}?transform=${transformString}` : src;
   }
 
   // External CDN proxy
-  const baseUrl = `https://${organizationName}.snapkit.dev/image`;
+  const baseUrl = `https://cdn.snapkit.studio/${organizationId}/external`;
   const searchParams = new URLSearchParams();
-  searchParams.set("url", url!);
+  searchParams.set("url", externalURL!);
 
   if (transformString) {
     searchParams.set("transform", transformString);
