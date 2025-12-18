@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": null,
+      "ended_at": "2025-10-01T10:00:00Z",
+      "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/83b8a07ffdd566cf84bdfe2995ec49d56ef8ce75f4cbc0e02726890e7c66c012.png?transform=format:webp",
+      "participant_count": 23,
+      "tags": [],
+      "title": "Blue Bottle Coffee"
+    },
+    {
+      "id": null,
+      "ended_at": null,
+      "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/thanos-pal-buBWIBoYVuY-unsplash.jpg?transform=format:webp",
+      "participant_count": 5,
+      "tags": [],
+      "title": "Dolores Park"
+    }
+  ]
+}

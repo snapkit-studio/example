@@ -1,0 +1,20 @@
+{
+    "items": [
+        {
+            "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/samuel-quek-EBTXvQuVX08-unsplash.jpg",
+            "title": "전체"
+        },
+        {
+            "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/samuel-quek-Bwy5o_Nu9dI-unsplash.jpg",
+            "title": "카페/맛집"
+        },
+        {
+            "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/marek-piwnicki-xjjf8Si7uA8-unsplash.jpg",
+            "title": "문화생활"
+        },
+        {
+            "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/gaku-suyama-jYQJN_8Ep3Y-unsplash.jpg",
+            "title": "축제/행사"
+        }
+    ]
+}

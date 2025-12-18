@@ -1,0 +1,49 @@
+{
+  "items": [
+    {
+      "title": "인기 있는 장소",
+      "items": [
+        {
+          "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/samuel-quek-zg9nNEvqytQ-unsplash.jpg",
+          "title": "화이팅!",
+          "tags": ["경기", "전시"],
+          "participant_count": null,
+          "ended_at": "2025-07-16T15:00:00+00:00"
+        },
+        {
+          "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/tanya-prodaan-b-cn3JA_nBw-unsplash.jpg",
+          "title": "타이틀",
+          "tags": ["서울", "카페"],
+          "participant_count": null,
+          "ended_at": null
+        },
+        {
+          "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/artan-sadiku-XLk-yfoHpS8-unsplash.jpg",
+          "title": "타이틀",
+          "tags": ["서울", "카페"],
+          "participant_count": null,
+          "ended_at": null
+        },
+        {
+          "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/josh-fotheringham-m1AfIVFNutU-unsplash.jpg",
+          "title": "타이틀",
+          "tags": ["서울", "카페"],
+          "participant_count": null,
+          "ended_at": null
+        }
+      ]
+    },
+    {
+      "title": "내 주변 놀거리",
+      "items": [
+        {
+          "image_url": "https://cdn.snapkit.studio/3b87e73b-36f8-4530-9a18-f5dd084c951b/0691243d-c991-4cc9-944f-b86431abc43a/natali-n-gltUMFm_i4Q-unsplash.jpg",
+          "title": "연극좋아",
+          "tags": ["모든 지역", "연극"],
+          "participant_count": null,
+          "ended_at": null
+        }
+      ]
+    }
+  ]
+}
