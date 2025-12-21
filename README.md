@@ -108,24 +108,50 @@ export default createSnapkitLoader({
 
 ### Swift
 
-Copy the Swift implementation from [swift/Sources/](swift/Sources/) and use it:
+Use [snapkit-image](https://github.com/snapkit-studio/snapkit-ios) and Swift example from [swift/Sources/](swift/) and use it:
 
 ```swift
-// Copy the implementation files from swift/Sources/
-// Then use it in your code:
+import snapkit_image
 
-let builder = SnapkitImageURL(organizationName: "my-org")
+// MARK: - Transform Options
 
-// S3 direct access (recommended)
-let imageURL = builder.build(
-    path: "project/images/hero.jpg",
-    transform: TransformOptions(
-        w: 300,
-        h: 200,
-        fit: .cover,
-        format: .webp
-    )
-)
+// Creates a set of image transformation options.
+// Each option is applied in a chainable manner and later converted into a URL query string.
+let transform = TransformOptions()
+    .setWidth(400)
+    .setHeight(300)
+    .setFit(.cover)
+    .setFormat(.jpeg)
+    .setBlur(15)
+    .setGrayscale(true)
+    .setRotation(90)
+    .setFlip(true)
+    .setQuality(80)
+
+// Builds a transform query string from the configured options.
+let query = transform.buildTransformString()
+// Result:
+// "w:400,h:300,fit:cover,format:jpeg,blur:15,grayscale,rotation:90,flip,quality:80"
+
+
+// MARK: - URL Builder
+
+// Generates a transformed image URL by appending transform parameters to a base URL.
+let baseURL = URL(string: "https://example.com/sample.jpg")!
+
+let finalURL = TransformQueryBuilder(url: baseURL)
+    .width(400)
+    .height(300)
+    .fit(.cover)
+    .format(.webp)
+    .blur(20)
+    .grayscale()
+    .flip()
+    .quality(90)
+    .currentURL()
+
+// Result:
+// https://example.com/sample.jpg?transform=w:400,h:300,fit:cover,format:webp,blur:20,grayscale,flip,quality:90
 ```
 
 ### Kotlin
