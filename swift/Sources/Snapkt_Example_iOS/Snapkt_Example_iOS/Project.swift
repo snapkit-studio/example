@@ -1,7 +1,7 @@
 import ProjectDescription
 
 let project = Project(
-    name: "Snapkit_Eaxmple_iOS",
+    name: "Snapkt_Example_iOS",
     settings: .settings(
         base: [
             "SWIFT_VERSION": "6.0"
@@ -9,7 +9,7 @@ let project = Project(
     ),
     targets: [
         .target(
-            name: "Snapkit_Eaxmple_iOS",
+            name: "Snapkt_Example_iOS",
             destinations: .iOS,
             product: .app,
             bundleId: "com.example.ios",
