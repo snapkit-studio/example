@@ -1,11 +1,44 @@
 ## Overview
 - An example using [snapkit-image](https://github.com/snapkit-studio/snapkit-ios) SPM together with [Snapkit](https://www.snapkit.studio/ko/docs)
+- This project is configured with **Tuist** — please refer to the **Tuist Installation** section below before running the project.
 
 ## Environment
 - OS: **Taho 26.0 (25A354)**
 - Xcode: **Version 26.0.1 (17A400)**
 - Tuist: **4.38.2**
 - Minimum iOS: **16.0**
+
+## Tuist Installation
+
+This project is generated with **Tuist**.
+
+### Option 1) mise (Recommended)
+
+```bash
+brew install mise
+mise install tuist@4.38.2
+mise use -g tuist@4.38.2
+tuist version
+```
+
+### Option 2)
+```bash
+brew tap tuist/tuist
+brew install tuist@4.38.2
+tuist version
+```
+
+### Generate Project
+
+Run the commands **from the repository root** (the directory that contains `Project.swift` and the `Tuist/` folder).
+
+```bash
+cd /path/to/your-repo
+ls
+# you should see: Project.swift, Tuist/, (Workspace.swift or Package.swift, etc.)
+
+tuist install && tuist generate
+```
 
 ## Metrics
 - **Downloaded**: Total amount of data used for downloads  
